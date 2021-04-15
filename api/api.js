@@ -7,6 +7,18 @@ const BodyParser = require('body-parser')
 
 var Routes = [
     {
+        pin: 'role:api,target:stats',
+        prefix: '/api/wr/stats',
+        map: {
+            //GET /api/wr/stats/:applicant?
+            retrieve: {
+                GET: true,
+                name: '',
+                suffix: '/:applicant?'
+            }
+        }
+    },
+    {
         pin: 'role:api,target:wr',
         prefix : '/api/wr',
         map: {
@@ -31,19 +43,7 @@ var Routes = [
             delete: {
                 DELETE: true,
                 name: '',
-                suffix: '/:id'
-            }
-        }
-    },
-    {
-        pin: 'role:api,target:stats',
-        prefix: '/api/wr/stats',
-        map: {
-            //GET /api/wr/stats/:applicant?
-            retrieve: {
-                GET: true,
-                name: '',
-                suffix: '/:applicant?'
+                suffix: '/:id?'
             }
         }
     }
@@ -148,14 +148,14 @@ seneca.add('role:api,target:stats',function (msg, reply){
     switch(msg.request$.method){
         //Retrieve
         case "GET":
-            if(params.applicant!==undefined){
-                console.log(JSON.stringify(params));
+            if(params.applicant !== undefined){
+                console.log("Je passe dans la partie parApplicant")
                 this.act({stats:'getByApplicant'},{
                     cmd: "retrieve",
                     applicant: params.applicant
                 },reply);
             }else{
-                console.log("COUCOU LA LE GET ALL FAUT MARCHER");
+                console.log("Je passe dans la partie All")
                 this.act({stats:'getAll'},{
                     cmd: "retrieve"
                 },reply);

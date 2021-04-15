@@ -4,7 +4,9 @@ const seneca = Seneca();
 
 const workrequests = [];
 
-const states = ["closed","created"]
+const deletedWorkRequest = [];
+
+const states = ["closed","created"];
 
 const findWRByID = function(id){
     for(let i = 0; i<workrequests.length;i++){
@@ -61,14 +63,24 @@ const workrequest = function (options) {
     this.add('wr:get', function (msg, done) {
         if(msg.id !== undefined){
             let wr = findWRByID(msg.id);
-            done(null,
-                {
-                    success : true,
-                    data : [
-                        wr
-                    ]
-                }
-            );
+            if(wr.state!=='deleted'){
+                done(null,
+                    {
+                        success : true,
+                        data : [
+                            wr
+                        ]
+                    }
+                );
+            }else{
+                done(
+                    {
+                        success : false,
+                        msg : "wr not found"
+                    }
+                )
+            }
+
         }else{
             done(
                 {
@@ -80,10 +92,16 @@ const workrequest = function (options) {
 
     });
     this.add('wr:getAll', function (msg, done) {
+        let onlyNotDeletedWR = []
+        for(let i = 0; i<workrequests.length; i++){
+            if(workrequests[i].state!=='deleted'){
+                onlyNotDeletedWR.push(workrequests[i])
+            }
+        }
         done(null,
             {
                 success : true,
-                data : workrequests
+                data : onlyNotDeletedWR
             }
         );
     });
@@ -91,17 +109,15 @@ const workrequest = function (options) {
     this.add('wr:updateworkandstate',function (msg,done){
         let wr = findWRByID(msg.id);
         let index = workrequests.indexOf(wr);
-        console.log(JSON.stringify(wr));
 
         if (wr!== undefined){
-            if(wr.state!=='closed'){
+            if(wr.state!=='closed' && wr.state!=='deleted'){
                 if(states.indexOf(msg.state)!==-1){
                     if(msg.state==="closed"){
                         workrequests[index].compl_date = currentDate();
                     }
                     workrequests[index].work = msg.work;
                     workrequests[index].state = msg.state;
-                    console.log("WR Updated : " + workrequests)
                     done(null,
                         {
                             success : true,
@@ -138,15 +154,12 @@ const workrequest = function (options) {
     });
 
     this.add('wr:updatework',function (msg,done){
-        console.log("Find by ID from update")
         let wr = findWRByID(msg.id);
         let index = workrequests.indexOf(wr);
-        console.log(JSON.stringify(wr));
 
         if(wr!== undefined){
-            if(wr.state!=='closed'){
+            if(wr.state!=='closed' && wr.state!=='deleted'){
                 workrequests[index].work = msg.work;
-                console.log("WR Updated : " + workrequests)
 
                 done(null,
                     {
@@ -174,22 +187,21 @@ const workrequest = function (options) {
         }
     });
 
+
+
     this.add('wr:updatestate',function (msg,done){
-        console.log("Find by ID from update")
 
         let wr = findWRByID(msg.id);
         let index = workrequests.indexOf(wr);
-        console.log(JSON.stringify(wr));
 
 
         if(wr!== undefined){
-            if(wr.state!=='closed'){
+            if(wr.state!=='closed' && wr.state!=='deleted'){
                 if(states.indexOf(msg.state)!==-1){
                     if(msg.state==="closed"){
                         workrequests[index].compl_date = currentDate();
                     }
                     workrequests[index].state = msg.state;
-                    console.log("WR Updated : " + workrequests)
                     done(null,
                         {
                             success : true,
@@ -227,15 +239,16 @@ const workrequest = function (options) {
     this.add('wr:delete', function(msg,done){
         if(msg.id!==undefined){
             let wr = findWRByID(msg.id);
+            let cloneWR = { ...wr}
             let index = workrequests.indexOf(wr);
             if (wr !== undefined){
-                if(workrequests[msg.id-1].state!=='closed'){
-                    workrequests.splice(index,1);
+                if(workrequests[index].state!=='closed'){
+                    workrequests[index].state='deleted';
                     done(null,
                         {
                             success : true,
                             data : [
-                                wr
+                                cloneWR
                             ]
                         }
                     );
@@ -256,24 +269,30 @@ const workrequest = function (options) {
                 )
             }
         }else{
-            let closedWR = []
             for(let i = 0; i<workrequests.length;i++){
-                if(workrequests[i].state==='closed'){
-                    closedWR.push(workrequests[i]);
+                if(workrequests[i].state!=='closed'){
+                    workrequests[i].state='deleted';
                 }
             }
-            let deletedWR = workrequests.splice(0,workrequests.length);
-            workrequests.push(closedWR);
             done(null,
                 {
                     success : true,
-                    data : deletedWR
+                    data : []
                 }
             );
         }
 
 
     })
+
+    this.add('wr:getAllEvenDeleted',function(msg,done){
+        done(null,
+            {
+                success : true,
+                data : workrequests
+            }
+        );
+    });
 
 };
 

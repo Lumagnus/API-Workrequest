@@ -11,18 +11,23 @@ const stats = function(options){
             stats_wr_closed: 0,
             applicant: msg.applicant
         };
-        this.act({wr:'getAll'},{
+        this.act({wr:'getAllEvenDeleted'},{
             cmd: 'retrieve'
         },function(err, response){
             if(response.success){
+                console.log("Get user stats for " + msg.applicant);
+                console.log("Data of the user : ");
                 for(let i=0; i<response.data.length;i++){
                     if(response.data[i].applicant===msg.applicant){
+                        console.log(JSON.stringify(response.data[i]))
                         if(response.data[i].state==='created'){
                             data.stats_wr_created++;
                             data.stats_wr_opened++;
                         }else if(response.data[i].state==='closed'){
                             data.stats_wr_created++;
                             data.stats_wr_closed++;
+                        }else if(response.data[i].state==='deleted'){
+                            data.stats_wr_created++;
                         }
                     }
                 }
@@ -37,16 +42,16 @@ const stats = function(options){
 
     });
     this.add('stats:getAll', function (msg, done) {
-        console.log(JSON.stringify(msg));
         let data = {
             global_stats_wr_created: 0,
             global_stats_wr_opened: 0,
             global_stats_wr_closed: 0
         };
-        this.act({wr:'getAll'},{
+        this.act({wr:'getAllEvenDeleted'},{
             cmd: 'retrieve'
         },function(err, response){
             if(response.success){
+
                 for(let i=0; i<response.data.length;i++){
                     if(response.data[i].state==='created'){
                         data.global_stats_wr_created++;
@@ -54,6 +59,8 @@ const stats = function(options){
                     }else if(response.data[i].state==='closed'){
                         data.global_stats_wr_created++;
                         data.global_stats_wr_closed++;
+                    } else if(response.data[i].state==='deleted'){
+                        data.global_stats_wr_created++;
                     }
                 }
                 done(null,
