@@ -15,11 +15,8 @@ const stats = function(options){
             cmd: 'retrieve'
         },function(err, response){
             if(response.success){
-                console.log("Get user stats for " + msg.applicant);
-                console.log("Data of the user : ");
                 for(let i=0; i<response.data.length;i++){
                     if(response.data[i].applicant===msg.applicant){
-                        console.log(JSON.stringify(response.data[i]))
                         if(response.data[i].state==='created'){
                             data.stats_wr_created++;
                             data.stats_wr_opened++;

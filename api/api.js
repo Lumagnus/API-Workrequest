@@ -149,13 +149,11 @@ seneca.add('role:api,target:stats',function (msg, reply){
         //Retrieve
         case "GET":
             if(params.applicant !== undefined){
-                console.log("Je passe dans la partie parApplicant")
                 this.act({stats:'getByApplicant'},{
                     cmd: "retrieve",
                     applicant: params.applicant
                 },reply);
             }else{
-                console.log("Je passe dans la partie All")
                 this.act({stats:'getAll'},{
                     cmd: "retrieve"
                 },reply);
