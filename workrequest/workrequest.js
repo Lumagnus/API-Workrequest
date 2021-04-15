@@ -63,33 +63,25 @@ const workrequest = function (options) {
     this.add('wr:get', function (msg, done) {
         if(msg.id !== undefined){
             let wr = findWRByID(msg.id);
-            if(wr.state!=='deleted'){
-                done(null,
-                    {
-                        success : true,
-                        data : [
-                            wr
-                        ]
-                    }
-                );
-            }else{
-                done(
-                    {
-                        success : false,
-                        msg : "wr not found"
-                    }
-                )
-            }
-
-        }else{
-            done(
-                {
-                    success : false,
-                    msg : "Not Found"
+            if(wr !== undefined){
+                if(wr.state!=='deleted'){
+                    done(null,
+                        {
+                            success : true,
+                            data : [
+                                wr
+                            ]
+                        }
+                    );
                 }
-            )
+            }
         }
-
+        done(
+            {
+                success : false,
+                msg : "wr not found"
+            }
+        );
     });
     this.add('wr:getAll', function (msg, done) {
         let onlyNotDeletedWR = []

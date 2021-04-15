@@ -66,7 +66,7 @@ function currentDate() {
 lab.experiment('work request app', () => {
 
     // delay between each test (if necessary)
-
+    /*
     lab.beforeEach(() => {
 
         return new Promise( (resolve) => {
@@ -74,7 +74,7 @@ lab.experiment('work request app', () => {
             setTimeout( () => { resolve(); }, 50);
         });
     });
-
+    */
 
     // 1
     lab.test('create a wr from paul', async () => {

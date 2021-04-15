@@ -5,7 +5,7 @@ const seneca = Seneca()
 const BodyParser = require('body-parser')
 
 
-var Routes = [
+const Routes = [
     {
         pin: 'role:api,target:stats',
         prefix: '/api/wr/stats',
@@ -31,7 +31,8 @@ var Routes = [
             retrieve: {
                 GET: true,
                 name: '',
-                suffix: '/:id?'
+                suffix: '/:id?',
+                postfix: '/?search=true'
             },
             // PUT /api/wr/:id? (id optionnel pour gérer l'erreur)
             update: {
@@ -56,18 +57,25 @@ seneca.use(SenecaWeb, {
     adapter: require('seneca-web-adapter-express') // des requetes PUT
 })
 
-seneca.client({      // ce module enverra les messages wr:*
-    port: 4000,      // sur le port 4000 (qui est le port sur lequel le microservice
-    pin: 'wr:*'      // wr attend les messages...
+seneca.client({     // ce module enverra les messages wr:*
+    port: 4000,     // sur le port 4000 (qui est le port sur lequel le microservice
+    pin: 'wr:*'     // wr attend les messages...
 })
 
 seneca.client({     // ce module enverra les messages stats:*
-    port: 4001,     // sur le port 4000 (qui est le port sur lequel le microservice
+    port: 4001,     // sur le port 4001 (qui est le port sur lequel le microservice
     pin: 'stats:*'  // stats attend les messages...
 });
+
+seneca.client({     // ce module enverra les messages idx:*
+    port: 4002,     // sur le port 4002 (qui est le port sur lequel le microservice
+    pin: 'idx:*'    // indexation attend les messages...
+});
+
 seneca.add('role:api,target:wr', function (msg, reply) {
     let data = msg.args.body;
     let params = msg.args.params;
+    let query = msg.args.query;
     switch(msg.request$.method){
         //Create
         case "POST":
@@ -80,15 +88,43 @@ seneca.add('role:api,target:wr', function (msg, reply) {
             break;
         //Retrieve
         case "GET":
+            //Check if a query is something else than search
+            Object.keys(JSON.parse(JSON.stringify(query))).forEach(function(key) {
+                if(key!=='search'){
+                    reply(
+                        {
+                            success : false,
+                            msg : 'query parameter invalid'
+                        }
+                    )
+                }
+            });
+
             if(params.id !== undefined){
+
+                if(query.search!==undefined){
+                    reply(
+                        {
+                            success : false,
+                            msg : 'query not possible with wr_id'
+                        }
+                    )
+                }
                 this.act({wr:'get'},{
                     cmd: "retrieve",
                     id : params.id
                 }, reply);
             }else{
-                this.act({wr:'getAll'},{
-                    cmd: "retrieve"
-                }, reply);
+                if(query.search !== undefined){
+                    this.act({idx: 'getFilter'},{
+                        cmd: "retrieve",
+                        query: query.search
+                    }, reply);
+                } else {
+                    this.act({wr: 'getAll'}, {
+                        cmd: "retrieve"
+                    }, reply);
+                }
             }
             break;
         //Update
