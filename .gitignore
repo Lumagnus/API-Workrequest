@@ -1,2 +1,4 @@
-workrequest/node_modules
+workrequestService/node_modules
 node_modules/
+out.log
+*.log

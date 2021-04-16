@@ -28,7 +28,7 @@ function currentDate() {
     return today;
 }
 
-const workrequest = function (options) {
+const workrequestService = function (options) {
     let maxid = 1;
 
     this.add('wr:post', function (msg, done) {
@@ -288,6 +288,6 @@ const workrequest = function (options) {
 
 };
 
-seneca.use(workrequest);
+seneca.use(workrequestService);
 
 seneca.listen(4000)

@@ -3,7 +3,7 @@ const Seneca = require('seneca')
 const seneca = Seneca();
 
 
-const stats = function(options){
+const statsService = function(options){
     this.add('stats:getByApplicant', function (msg, done) {
         let data = {
             stats_wr_created: 0,
@@ -73,7 +73,7 @@ const stats = function(options){
 
 }
 
-seneca.use(stats)
+seneca.use(statsService)
 
 seneca.listen(4001);
 seneca.client({port:4000, pin: 'wr:*'});

@@ -51,12 +51,3 @@ seneca.use(index)
 
 seneca.listen(4002);
 seneca.client({port:4000, pin: 'wr:*'});
-
-
-
-
-
-//Code utile pour ne pas prendre les trucs supprimés
-/*miniSearch.search('zen', {
-    filter: (result) => result.state !== 'deleted'
-})*/
